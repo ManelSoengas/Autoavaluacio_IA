@@ -1,29 +1,30 @@
-import { GoogleGenerativeAI } from "@google/genai";
+import { GoogleGenAI } from '@google/genai';
 
 export async function POST(req: Request) {
   try {
     const { prompt } = await req.json();
 
-    if (!prompt) {
-      return Response.json({ error: "Missing prompt" }, { status: 400 });
+    if (!prompt || typeof prompt !== 'string') {
+      return Response.json({ error: 'Missing prompt' }, { status: 400 });
     }
 
-    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
-
-    const model = genAI.getGenerativeModel({
-      model: "gemini-1.5-flash",
+    const ai = new GoogleGenAI({
+      apiKey: process.env.GEMINI_API_KEY!,
     });
 
-    const result = await model.generateContent(prompt);
+    const response = await ai.models.generateContent({
+      model: 'gemini-2.5-flash',
+      contents: prompt,
+    });
 
-    const text = result.response.text();
-
-    return Response.json({ text });
-
+    return Response.json({
+      text: response.text ?? 'No s’ha pogut generar una resposta.',
+    });
   } catch (error) {
-    console.error("Error generating content:", error);
+    console.error('Gemini error:', error);
+
     return Response.json(
-      { error: "Error generating response" },
+      { error: "S'ha produït un error en generar la resposta." },
       { status: 500 }
     );
   }
